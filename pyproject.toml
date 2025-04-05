@@ -1,0 +1,18 @@
+[project]
+name = "microroyaleaoe"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Derek Jones",email = "derekjones@asu.edu"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aoe2scenarioparser (>=0.3.2,<0.4.0)",
+    "click (>=8.1.8,<9.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
