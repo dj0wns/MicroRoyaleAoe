@@ -8,19 +8,19 @@ from AoE2ScenarioParser.datasets.techs import TechInfo
 from AoE2ScenarioParser.datasets.trigger_lists import Attribute
 
 @click.command()
-@click.option('--base-map', type=click.Path(exists=True))
+@click.option('--base-map', type=click.Path(exists=True), help='Source map to apply these modifications to.')
 @click.option('--out-file', type=click.Path(exists=False))
 @click.option('--map-size', type=int, default=0)
 @click.option('--player-count', type=int)
-@click.option('--storm-seconds', type=int)
+@click.option('--storm-seconds', type=int, help='')
 @click.option('--damage-frequency-in-seconds', type=int)
 @click.option('--damage-amount', type=int)
-@click.option('--block-size', type=int, help='The size of each trigger area, 1 means its a 1x1 tile, 3 means a 3x3 tile, this helps reduce trigger count (and stability) at larger map sizes but makes the circle less smooth)')
-@click.option('--unit-to-generate', type=str, help='[MULTIPLE] Fully qualified name of the unit in the AoEScenarioParser (https://ksneijders.github.io/AoE2ScenarioParser/api_docs/datasets/units/) that we want to generate, if blank will not add any units. These units will be divided evenly in a circle about the center of the map per player. Example: For crossbow you would put: UnitInfo.CROSSBOWMAN.ID', multiple=True)
-@click.option('--unit-count', type=int, help='[MULTIPLE] Number of that unit to generate', multiple=True)
-@click.option('--tech-to-provide', type=str, multiple=True, help='[MULTIPLE] Techs that will be researched by every player, use the fully qualified name in the AoEScenarioParser (https://ksneijders.github.io/AoE2ScenarioParser/api_docs/datasets/techs/). Example: TechInfo.FLETCHING.ID')
-@click.option('--tech-reward', type=str, multiple=True, help='[MULTIPLE] Techs that will be researched by every player after meeting a kill goal. (https://ksneijders.github.io/AoE2ScenarioParser/api_docs/datasets/techs/). Example: TechInfo.FLETCHING.ID')
-@click.option('--tech-reward-kill-amount', type=int, multiple=True, help='[MULTIPLE] The kill goal for the corresponding reward tech.')
+@click.option('--block-size', type=int, help='The size of each trigger area, e.g. 1 creates a 1x1 tile, 3 creates a 3x3 tile. This helps reduce trigger count (and stability) at larger map sizes but makes the storm circle less smooth)')
+@click.option('--unit-to-generate', type=str, help='[MULTIPLE] Fully qualified name of the unit in the AoEScenarioParser (https://ksneijders.github.io/AoE2ScenarioParser/api_docs/datasets/units/) that we want to generate, if blank will not add any units. These units will be divided evenly in a circle about the center of the map per player. Example: For crossbow you would put: UnitInfo.CROSSBOWMAN', multiple=True)
+@click.option('--unit-count', type=int, help='[MULTIPLE] Number of the corresponding unit to generate (in the same order as unit-to-generate was declared', multiple=True)
+@click.option('--tech-to-provide', type=str, multiple=True, help='[MULTIPLE] Tech that is researched by every player at the start. Use the fully qualified name in the AoEScenarioParser (https://ksneijders.github.io/AoE2ScenarioParser/api_docs/datasets/techs/). Example: TechInfo.FLETCHING')
+@click.option('--tech-reward', type=str, multiple=True, help='[MULTIPLE] Tech that will be researched by each player after meeting a kill goal. (https://ksneijders.github.io/AoE2ScenarioParser/api_docs/datasets/techs/). Example: TechInfo.FLETCHING')
+@click.option('--tech-reward-kill-amount', type=int, multiple=True, help='[MULTIPLE] The total kill goal for the corresponding reward tech.')
 def main(
     base_map,
     out_file,
@@ -96,7 +96,7 @@ def add_reward_triggers(trigger_manager,
           attribute=Attribute.UNITS_KILLED)
       reward_trigger.new_effect.research_technology(
           source_player=p+1, #gaia is 0, so 1 indexed
-          technology=eval(tech_reward[i]),
+          technology=eval(tech_reward[i]).ID,
           force_research_technology=1)
       # Send message to all players that Player p has researched a tech!
       for p_i in range(player_count):
@@ -114,7 +114,7 @@ def add_initial_tech_triggers(
     for tech in tech_to_provide:
       init_trigger.new_effect.research_technology(
           source_player=p+1, #gaia is 0, so 1 indexed
-          technology=eval(tech),
+          technology=eval(tech).ID,
           force_research_technology=1)
 
 def generate_units(
@@ -140,7 +140,7 @@ def generate_units(
     for unit_index in range(len(unit_to_generate)):
       for i in range(unit_count[unit_index]):
         unit_manager.add_unit(p + 1, #gaia is 0, so 1 indexed here
-            unit_const = eval(unit_to_generate[unit_index]),
+            unit_const = eval(unit_to_generate[unit_index]).ID,
             x = initial_x + row_count * distance_increment,
             y = initial_y + col_count * distance_increment,
             rotation = math.degrees((spawn_angle * float(p))))
